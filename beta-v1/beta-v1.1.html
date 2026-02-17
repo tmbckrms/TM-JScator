@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TM-JScator (beta-v1.1)</title>
+
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --panel: rgba(255, 255, 255, 0.06);
+      --panel-border: rgba(255, 255, 255, 0.12);
+      --text: rgba(255, 255, 255, 0.92);
+      --muted: rgba(255, 255, 255, 0.62);
+      --accent: #6aa8ff;
+      --accent2: #7c5cff;
+      --shadow: rgba(0, 0, 0, 0.4);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(1200px 800px at 15% 20%, rgba(106, 168, 255, 0.18), transparent 60%),
+                  radial-gradient(900px 700px at 90% 80%, rgba(124, 92, 255, 0.18), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 26px 14px;
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 980px;
+    }
+
+    header {
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: 0.2px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tag {
+      font-size: 12px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.75);
+    }
+
+    p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 14px;
+      max-width: 720px;
+    }
+
+    .panel {
+      margin-top: 18px;
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 20px 60px var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    @media (min-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 8px;
+      color: rgba(255, 255, 255, 0.78);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 330px;
+      resize: vertical;
+      border-radius: 14px;
+      padding: 12px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(0, 0, 0, 0.35);
+      color: rgba(255, 255, 255, 0.92);
+      outline: none;
+      font-size: 13px;
+      line-height: 1.55;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    textarea:focus {
+      border-color: rgba(106, 168, 255, 0.55);
+      box-shadow: 0 0 0 3px rgba(106, 168, 255, 0.18);
+    }
+
+    .actions {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    button {
+      border: none;
+      cursor: pointer;
+      padding: 11px 16px;
+      border-radius: 14px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.95);
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      box-shadow: 0 10px 30px rgba(106, 168, 255, 0.18);
+      transition: transform 0.12s ease, filter 0.12s ease;
+    }
+
+    button:active {
+      transform: translateY(1px) scale(0.99);
+      filter: brightness(0.95);
+    }
+
+    .hint {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    .hint code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 6px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.10);
+    }
+
+    footer {
+      margin-top: 14px;
+      color: rgba(255, 255, 255, 0.45);
+      font-size: 12px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <h1>
+        TM-JScator
+        <span class="tag">beta-v1.1</span>
+      </h1>
+      <p>
+        (Light) Obfuscator JavaScript 
+      </p>
+    </header>
+
+    <div class="panel">
+      <div class="grid">
+        <div class="field">
+          <label for="input">Input JavaScript</label>
+          <textarea id="input" spellcheck="false">// Example:
+function demo(a, b) {
+  // This is a comment
+  let sum = a + b;
+  const msg = "Hello";
+  console.log(msg, sum);
+  return sum;
+}</textarea>
+        </div>
+
+        <div class="field">
+          <label for="output">Output (Obfuscated)</label>
+          <textarea id="output" spellcheck="false" readonly></textarea>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="btn">Obfuscate</button>
+        <div class="hint">
+          Tip: Beta-v1 is just the first version, meaning it won't be as powerful as later versions.
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      TM-JScator © beta-v1.1 — made for chaos, not for crime 😭
+    </footer>
+  </div>
+
+  <script>
+        // =========================
+    // TM-JScator beta-v1 engine
+    // =========================
+
+    function removeComments(code) {
+        // Remove block comments first (still risky but ok for beta)
+        code = code.replace(/\/\*[\s\S]*?\*\//g, "");
+
+        let out = "";
+        let inSingle = false;
+        let inDouble = false;
+        let inTemplate = false;
+        let escape = false;
+
+        for (let i = 0; i < code.length; i++) {
+            const c = code[i];
+            const n = code[i + 1];
+
+            // Handle escaping inside strings/templates
+            if (escape) {
+                out += c;
+                escape = false;
+                continue;
+            }
+
+            if (c === "\\") {
+                out += c;
+                escape = true;
+                continue;
+            }
+
+            // Toggle string states
+            if (!inDouble && !inTemplate && c === "'") {
+                inSingle = !inSingle;
+                out += c;
+                continue;
+            }
+            if (!inSingle && !inTemplate && c === '"') {
+                inDouble = !inDouble;
+                out += c;
+                continue;
+            }
+            if (!inSingle && !inDouble && c === "`") {
+                inTemplate = !inTemplate;
+                out += c;
+                continue;
+            }
+
+            // Remove line comment only if not inside string/template
+            if (!inSingle && !inDouble && !inTemplate && c === "/" && n === "/") {
+                // skip until newline
+                while (i < code.length && code[i] !== "\n") i++;
+                out += "\n";
+                continue;
+            }
+
+            out += c;
+        }
+
+        return out;
+    }
+
+
+    function basicMinifyWhitespace(code) {
+        // Remove trailing spaces
+        code = code.replace(/[ \t]+$/gm, "");
+
+        // Collapse multiple newlines
+        code = code.replace(/\n{3,}/g, "\n\n");
+
+        // Collapse spaces ONLY at line start or end (safe-ish)
+        code = code.replace(/^[ \t]+/gm, "");
+        code = code.replace(/[ \t]+$/gm, "");
+
+
+        return code.trim();
+    }
+
+    function generateVarName(index) {
+        // Generates: _0, _1, _2, ...
+        return "_" + index.toString(36);
+    }
+
+    function renameVariablesBasic(code) {
+        // VERY BASIC variable rename:
+        // Finds: let x, const y, var z, function foo(a,b), (a,b)=> ...
+        // This is NOT a full JS parser. beta-v1 is intentionally weak.
+
+        const reserved = new Set([
+            "let", "const", "var", "function", "return", "if", "else", "for", "while", "do",
+            "switch", "case", "break", "continue", "try", "catch", "finally", "throw",
+            "new", "this", "class", "extends", "super", "import", "from", "export", "default",
+            "in", "of", "typeof", "instanceof", "void", "delete", "await", "async",
+            "true", "false", "null", "undefined",
+            "console", "Math", "Date", "JSON", "Object", "Array", "String", "Number", "Boolean",
+            "Set", "Map", "WeakSet", "WeakMap", "Symbol", "BigInt", "RegExp", "Error",
+            "window", "document", "globalThis",
+            "arguments", "eval", "Infinity", "NaN",
+            "Promise", "Reflect", "Proxy",
+            "Intl", "WebAssembly",
+            "parseInt", "parseFloat", "isNaN", "isFinite",
+            "encodeURI", "decodeURI", "encodeURIComponent", "decodeURIComponent",
+            "undefined", "NaN", "Infinity",
+            "fetch", "Request", "Response", "Headers",
+            "localStorage", "sessionStorage", "location", "history", "navigator"
+        ]);
+
+        // Collect variable identifiers
+        const found = [];
+        const varDeclRegex = /\b(?:let|const|var)\s+([a-zA-Z_$][\w$]*)/g;
+        let m;
+
+        while ((m = varDeclRegex.exec(code)) !== null) {
+            const name = m[1];
+            if (!reserved.has(name) && !found.includes(name)) found.push(name);
+        }
+
+        // Collect function params: function name(a,b)
+        const funcParamRegex = /\bfunction\b\s*[a-zA-Z_$][\w$]*\s*\(([^)]*)\)/g;
+        while ((m = funcParamRegex.exec(code)) !== null) {
+            const params = m[1]
+                .split(",")
+                .map(s => s.trim())
+                .filter(Boolean);
+
+            for (const p of params) {
+                if (/^[a-zA-Z_$][\w$]*$/.test(p) && !reserved.has(p) && !found.includes(p)) {
+                    found.push(p);
+                }
+            }
+        }
+
+        // Collect arrow params: (a,b)=> or a=>
+        const arrowParamRegex = /(\(([^\)]*)\)|\b([a-zA-Z_$][\w$]*)\b)\s*=>/g;
+        while ((m = arrowParamRegex.exec(code)) !== null) {
+            const inside = m[2];
+            const single = m[3];
+
+            if (inside != null) {
+                const params = inside
+                    .split(",")
+                    .map(s => s.trim())
+                    .filter(Boolean);
+
+                for (const p of params) {
+                    if (/^[a-zA-Z_$][\w$]*$/.test(p) && !reserved.has(p) && !found.includes(p)) {
+                        found.push(p);
+                    }
+                }
+            } else if (single != null) {
+                if (!reserved.has(single) && !found.includes(single)) found.push(single);
+            }
+        }
+
+        // Build mapping
+        const mapping = new Map();
+        for (let i = 0; i < found.length; i++) {
+            mapping.set(found[i], generateVarName(i));
+        }
+
+        // =========================
+        // Token-based safe renaming
+        // =========================
+
+        function isIdentStart(ch) {
+            return /[A-Za-z_$]/.test(ch);
+        }
+
+        function isIdentPart(ch) {
+            return /[A-Za-z0-9_$]/.test(ch);
+        }
+
+        function isWhitespace(ch) {
+            return ch === " " || ch === "\t" || ch === "\n" || ch === "\r";
+        }
+
+        function readString(code, i, quote) {
+            // quote: ' or " or `
+            let out = quote;
+            i++;
+
+            let escape = false;
+            while (i < code.length) {
+                const c = code[i];
+                out += c;
+
+                if (escape) {
+                    escape = false;
+                } else if (c === "\\") {
+                    escape = true;
+                } else if (quote === "`" && c === "$" && code[i + 1] === "{") {
+                    // Template expression: ${ ... }
+                    out += "{";
+                    i += 2;
+
+                    const inner = readBalanced(code, i, "{", "}");
+                    out += inner.text;
+                    i = inner.end;
+
+                    continue;
+                } else if (c === quote) {
+                    i++;
+                    break;
+                }
+                i++;
+            }
+
+            return {
+                text: out,
+                end: i
+            };
+        }
+
+        function readBalanced(code, i, openCh, closeCh) {
+            // Reads until matching closeCh, supports nested strings/templates
+            let out = "";
+            let depth = 1;
+
+            while (i < code.length) {
+                const c = code[i];
+
+                // Strings
+                if (c === "'" || c === '"' || c === "`") {
+                    const s = readString(code, i, c);
+                    out += s.text;
+                    i = s.end;
+                    continue;
+                }
+
+                // Comments
+                if (c === "/" && code[i + 1] === "/") {
+                    // line comment
+                    while (i < code.length && code[i] !== "\n") {
+                        out += code[i];
+                        i++;
+                    }
+                    continue;
+                }
+                if (c === "/" && code[i + 1] === "*") {
+                    // block comment
+                    out += "/*";
+                    i += 2;
+                    while (i < code.length && !(code[i] === "*" && code[i + 1] === "/")) {
+                        out += code[i];
+                        i++;
+                    }
+                    if (i < code.length) {
+                        out += "*/";
+                        i += 2;
+                    }
+                    continue;
+                }
+
+                // Depth tracking
+                if (c === openCh) depth++;
+                if (c === closeCh) depth--;
+
+                out += c;
+                i++;
+
+                if (depth === 0) break;
+            }
+
+            return {
+                text: out,
+                end: i
+            };
+        }
+
+        function readRegexLiteral(code, i) {
+            // Reads /.../flags
+            // This is hard in JS, but for beta-v1.1 we do a best-effort:
+            // We assume if we got here, this / starts a regex literal.
+            let out = "/";
+            i++;
+
+            let escape = false;
+            let inCharClass = false;
+
+            while (i < code.length) {
+                const c = code[i];
+                out += c;
+
+                if (escape) {
+                    escape = false;
+                } else if (c === "\\") {
+                    escape = true;
+                } else if (c === "[" && !inCharClass) {
+                    inCharClass = true;
+                } else if (c === "]" && inCharClass) {
+                    inCharClass = false;
+                } else if (c === "/" && !inCharClass) {
+                    i++;
+                    break;
+                }
+                i++;
+            }
+
+            // Flags
+            while (i < code.length && /[a-z]/i.test(code[i])) {
+                out += code[i];
+                i++;
+            }
+
+            return {
+                text: out,
+                end: i
+            };
+        }
+
+        function shouldTreatSlashAsRegex(prevNonWs) {
+            // Heuristic:
+            // after these tokens, / usually begins regex:
+            // ( , = : [ ! ? { ; return typeof instanceof void delete
+            if (!prevNonWs) return true;
+
+            const t = prevNonWs;
+
+            if (
+                t === "(" || t === "[" || t === "{" ||
+                t === "=" || t === ":" || t === "," ||
+                t === "!" || t === "?" || t === ";" ||
+                t === "&&" || t === "||" ||
+                t === "==" || t === "===" || t === "!=" || t === "!==" ||
+                t === "+" || t === "-" || t === "*" || t === "%" ||
+                t === "<" || t === ">" || t === "<=" || t === ">=" ||
+                t === "return" || t === "throw" ||
+                t === "typeof" || t === "instanceof" ||
+                t === "void" || t === "delete" || t === "new"
+            ) return true;
+
+            return false;
+        }
+
+        function tokenizeAndRename(code, mapping) {
+            let out = "";
+            let i = 0;
+
+            let prevNonWsToken = null;
+
+            while (i < code.length) {
+                const c = code[i];
+                const n = code[i + 1];
+
+                // Strings / templates
+                if (c === "'" || c === '"' || c === "`") {
+                    const s = readString(code, i, c);
+                    out += s.text;
+                    i = s.end;
+                    prevNonWsToken = "STRING";
+                    continue;
+                }
+
+                // Comments
+                if (c === "/" && n === "/") {
+                    // line comment
+                    while (i < code.length && code[i] !== "\n") {
+                        out += code[i];
+                        i++;
+                    }
+                    continue;
+                }
+                if (c === "/" && n === "*") {
+                    // block comment
+                    out += "/*";
+                    i += 2;
+                    while (i < code.length && !(code[i] === "*" && code[i + 1] === "/")) {
+                        out += code[i];
+                        i++;
+                    }
+                    if (i < code.length) {
+                        out += "*/";
+                        i += 2;
+                    }
+                    continue;
+                }
+
+                // Regex literal (heuristic)
+                if (c === "/" && n !== "/" && n !== "*") {
+                    if (shouldTreatSlashAsRegex(prevNonWsToken)) {
+                        const r = readRegexLiteral(code, i);
+                        out += r.text;
+                        i = r.end;
+                        prevNonWsToken = "REGEX";
+                        continue;
+                    }
+                    // else treat as division operator
+                }
+
+                // Identifier
+                if (isIdentStart(c)) {
+                    let j = i + 1;
+                    while (j < code.length && isIdentPart(code[j])) j++;
+
+                    const ident = code.slice(i, j);
+
+                    // Determine context to avoid renaming object keys / property access
+                    // 1) If previous non-ws char is '.' => property access => don't rename
+                    let k = i - 1;
+                    while (k >= 0 && isWhitespace(code[k])) k--;
+                    const prevCh = k >= 0 ? code[k] : "";
+
+                    // 2) If next non-ws char is ':' => object literal key => don't rename
+                    let t = j;
+                    while (t < code.length && isWhitespace(code[t])) t++;
+                    const nextCh = t < code.length ? code[t] : "";
+
+                    // 3) If we are inside import/export braces, skip (best effort)
+                    // (This is simplistic but prevents the worst cases.)
+                    const shouldSkipImportExport =
+                        prevNonWsToken === "import" ||
+                        prevNonWsToken === "export";
+
+                    const isPropertyAccess = prevCh === ".";
+                    const isObjectKey = nextCh === ":";
+
+                    // 4) Destructuring: { a } or { a, b } or { a = 1 }
+                    // If prevNonWsToken is '{' and next token is ',' or '}' or '=' => skip
+                    const isMaybeDestructure =
+                        prevNonWsToken === "{" &&
+                        (nextCh === "," || nextCh === "}" || nextCh === "=");
+
+                    if (
+                        !isPropertyAccess &&
+                        !isObjectKey &&
+                        !isMaybeDestructure &&
+                        !shouldSkipImportExport &&
+                        mapping.has(ident)
+                    ) {
+                        out += mapping.get(ident);
+                    } else {
+                        out += ident;
+                    }
+
+                    prevNonWsToken = ident;
+                    i = j;
+                    continue;
+                }
+
+                // Operators / punctuation
+                out += c;
+
+                // Track prevNonWsToken roughly
+                if (!isWhitespace(c)) {
+                    // Try to group some 2-char ops
+                    const two = c + (n || "");
+                    if (["&&", "||", "==", "!=", "===", "!==", "<=", ">="].includes(two)) {
+                        prevNonWsToken = two;
+                        out += n;
+                        i += 2;
+                        continue;
+                    } else {
+                        prevNonWsToken = c;
+                    }
+                }
+
+                i++;
+            }
+
+            return out;
+        }
+
+        code = tokenizeAndRename(code, mapping);
+
+
+        return code;
+    }
+
+    function wrapInIIFE(code) {
+        return "(function(){\n" + code + "\n})();";
+    }
+
+    function obfuscateBetaV1(inputCode) {
+        let code = inputCode;
+
+        code = removeComments(code);
+        code = basicMinifyWhitespace(code);
+        code = renameVariablesBasic(code);
+        code = wrapInIIFE(code);
+
+        return code;
+    }
+
+    // =========================
+    // UI
+    // =========================
+
+    const inputEl = document.getElementById("input");
+    const outputEl = document.getElementById("output");
+    const btn = document.getElementById("btn");
+
+    function run() {
+        try {
+            const input = inputEl.value || "";
+            const result = obfuscateBetaV1(input);
+            outputEl.value = result;
+        } catch (err) {
+            outputEl.value = "Error: " + (err && err.message ? err.message : String(err));
+        }
+    }
+
+    btn.addEventListener("click", run);
+
+    // Auto-run once on load
+    run();
+  </script>
+</body>
+  </html>
+  
