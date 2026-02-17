@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TM-JScator (beta-v1)</title>
+
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --panel: rgba(255, 255, 255, 0.06);
+      --panel-border: rgba(255, 255, 255, 0.12);
+      --text: rgba(255, 255, 255, 0.92);
+      --muted: rgba(255, 255, 255, 0.62);
+      --accent: #6aa8ff;
+      --accent2: #7c5cff;
+      --shadow: rgba(0, 0, 0, 0.4);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(1200px 800px at 15% 20%, rgba(106, 168, 255, 0.18), transparent 60%),
+                  radial-gradient(900px 700px at 90% 80%, rgba(124, 92, 255, 0.18), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 26px 14px;
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 980px;
+    }
+
+    header {
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: 0.2px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tag {
+      font-size: 12px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.75);
+    }
+
+    p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 14px;
+      max-width: 720px;
+    }
+
+    .panel {
+      margin-top: 18px;
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 20px 60px var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    @media (min-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 8px;
+      color: rgba(255, 255, 255, 0.78);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 330px;
+      resize: vertical;
+      border-radius: 14px;
+      padding: 12px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(0, 0, 0, 0.35);
+      color: rgba(255, 255, 255, 0.92);
+      outline: none;
+      font-size: 13px;
+      line-height: 1.55;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    textarea:focus {
+      border-color: rgba(106, 168, 255, 0.55);
+      box-shadow: 0 0 0 3px rgba(106, 168, 255, 0.18);
+    }
+
+    .actions {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    button {
+      border: none;
+      cursor: pointer;
+      padding: 11px 16px;
+      border-radius: 14px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.95);
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      box-shadow: 0 10px 30px rgba(106, 168, 255, 0.18);
+      transition: transform 0.12s ease, filter 0.12s ease;
+    }
+
+    button:active {
+      transform: translateY(1px) scale(0.99);
+      filter: brightness(0.95);
+    }
+
+    .hint {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    .hint code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 6px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.10);
+    }
+
+    footer {
+      margin-top: 14px;
+      color: rgba(255, 255, 255, 0.45);
+      font-size: 12px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <h1>
+        TM-JScator
+        <span class="tag">beta-v1</span>
+      </h1>
+      <p>
+        (Light) Obfuscator JavaScript 
+      </p>
+    </header>
+
+    <div class="panel">
+      <div class="grid">
+        <div class="field">
+          <label for="input">Input JavaScript</label>
+          <textarea id="input" spellcheck="false">// Example:
+function demo(a, b) {
+  // This is a comment
+  let sum = a + b;
+  const msg = "Hello";
+  console.log(msg, sum);
+  return sum;
+}</textarea>
+        </div>
+
+        <div class="field">
+          <label for="output">Output (Obfuscated)</label>
+          <textarea id="output" spellcheck="false" readonly></textarea>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="btn">Obfuscate</button>
+        <div class="hint">
+          Tip: Beta-v1 is just the first version, meaning it won't be as powerful as later versions.
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      TM-JScator © beta-v1 — made for chaos, not for crime 😭
+    </footer>
+  </div>
+
+  <script>
+    // =========================
+    // TM-JScator beta-v1 engine
+    // =========================
+
+    function removeComments(code) {
+      // Remove block comments /* ... */
+      code = code.replace(/\/\*[\s\S]*?\*\//g, "");
+
+      // Remove line comments // ...
+      // BUT keep // inside strings is hard. beta-v1 doesn't fully handle edge cases.
+      code = code.replace(/(^|\s)\/\/.*$/gm, "$1");
+
+      return code;
+    }
+
+    function basicMinifyWhitespace(code) {
+      // Remove trailing spaces
+      code = code.replace(/[ \t]+$/gm, "");
+
+      // Collapse multiple newlines
+      code = code.replace(/\n{3,}/g, "\n\n");
+
+      // Collapse multiple spaces (not inside strings; beta-v1 doesn't fully handle that)
+      code = code.replace(/[ \t]{2,}/g, " ");
+
+      return code.trim();
+    }
+
+    function generateVarName(index) {
+      // Generates: _0, _1, _2, ...
+      return "_" + index.toString(36);
+    }
+
+    function renameVariablesBasic(code) {
+      // VERY BASIC variable rename:
+      // Finds: let x, const y, var z, function foo(a,b), (a,b)=> ...
+      // This is NOT a full JS parser. beta-v1 is intentionally weak.
+
+      const reserved = new Set([
+        "let","const","var","function","return","if","else","for","while","do",
+        "switch","case","break","continue","try","catch","finally","throw",
+        "new","this","class","extends","super","import","from","export","default",
+        "in","of","typeof","instanceof","void","delete","await","async",
+        "true","false","null","undefined",
+        "console","Math","Date","JSON","Object","Array","String","Number","Boolean",
+        "Set","Map","WeakSet","WeakMap","Symbol","BigInt","RegExp","Error",
+        "window","document","globalThis"
+      ]);
+
+      // Collect variable identifiers
+      const found = [];
+      const varDeclRegex = /\b(?:let|const|var)\s+([a-zA-Z_$][\w$]*)/g;
+      let m;
+
+      while ((m = varDeclRegex.exec(code)) !== null) {
+        const name = m[1];
+        if (!reserved.has(name) && !found.includes(name)) found.push(name);
+      }
+
+      // Collect function params: function name(a,b)
+      const funcParamRegex = /\bfunction\b\s*[a-zA-Z_$][\w$]*\s*\(([^)]*)\)/g;
+      while ((m = funcParamRegex.exec(code)) !== null) {
+        const params = m[1]
+          .split(",")
+          .map(s => s.trim())
+          .filter(Boolean);
+
+        for (const p of params) {
+          if (/^[a-zA-Z_$][\w$]*$/.test(p) && !reserved.has(p) && !found.includes(p)) {
+            found.push(p);
+          }
+        }
+      }
+
+      // Collect arrow params: (a,b)=> or a=>
+      const arrowParamRegex = /(\(([^\)]*)\)|\b([a-zA-Z_$][\w$]*)\b)\s*=>/g;
+      while ((m = arrowParamRegex.exec(code)) !== null) {
+        const inside = m[2];
+        const single = m[3];
+
+        if (inside != null) {
+          const params = inside
+            .split(",")
+            .map(s => s.trim())
+            .filter(Boolean);
+
+          for (const p of params) {
+            if (/^[a-zA-Z_$][\w$]*$/.test(p) && !reserved.has(p) && !found.includes(p)) {
+              found.push(p);
+            }
+          }
+        } else if (single != null) {
+          if (!reserved.has(single) && !found.includes(single)) found.push(single);
+        }
+      }
+
+      // Build mapping
+      const mapping = new Map();
+      for (let i = 0; i < found.length; i++) {
+        mapping.set(found[i], generateVarName(i));
+      }
+
+      // Replace identifiers (word boundary)
+      // WARNING: beta-v1 can break strings and object keys. This is expected.
+      for (const [oldName, newName] of mapping.entries()) {
+        const re = new RegExp("\\b" + oldName.replace(/\$/g, "\\$") + "\\b", "g");
+        code = code.replace(re, newName);
+      }
+
+      return code;
+    }
+
+    function wrapInIIFE(code) {
+      return "(function(){\n" + code + "\n})();";
+    }
+
+    function obfuscateBetaV1(inputCode) {
+      let code = inputCode;
+
+      code = removeComments(code);
+      code = basicMinifyWhitespace(code);
+      code = renameVariablesBasic(code);
+      code = wrapInIIFE(code);
+
+      return code;
+    }
+
+    // =========================
+    // UI
+    // =========================
+
+    const inputEl = document.getElementById("input");
+    const outputEl = document.getElementById("output");
+    const btn = document.getElementById("btn");
+
+    function run() {
+      try {
+        const input = inputEl.value || "";
+        const result = obfuscateBetaV1(input);
+        outputEl.value = result;
+      } catch (err) {
+        outputEl.value = "Error: " + (err && err.message ? err.message : String(err));
+      }
+    }
+
+    btn.addEventListener("click", run);
+
+    // Auto-run once on load
+    run();
+  </script>
+</body>
+  </html>
+  
